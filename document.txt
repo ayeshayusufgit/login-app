@@ -1,0 +1,15 @@
+To connect to the DB
+mysql -u root -p
+
+Project Structure
+=================
+
+login-app/
+├── backend/
+│   ├── server.js
+│   ├── db.js
+│   └── routes/auth.js
+├── frontend/
+│   └── index.html
+├── package.json
+├── .env (DO NOT commit this)
