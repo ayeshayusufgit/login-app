@@ -1,13 +1,8 @@
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-dotenv.config();
+import mysql from "mysql2/promise";
 
-const db = await mysql.createConnection({
-  host: process.env.DB_HOST || 'mysql-loginapp-db-ayesha-login-db.f.aivencloud.com',
-  user: process.env.DB_USER || 'avnadmin',
-  password: process.env.DB_PASSWORD || 'AVNS_MjGXx79jT1clBMpNaGS',
-  database: process.env.DB_NAME || 'defaultdb',
+export const db = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "B@hr@inmysql786",
+  database: "logindb",
 });
-
-console.log('✅ Connected to MySQL DB');
-export default db;
