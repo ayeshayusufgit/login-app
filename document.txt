@@ -5,11 +5,19 @@ Project Structure
 =================
 
 login-app/
-├── backend/
-│   ├── server.js
-│   ├── db.js
-│   └── routes/auth.js
-├── frontend/
-│   └── index.html
-├── package.json
-├── .env (DO NOT commit this)
+├── .env                      # Environment variables (DB credentials etc.)
+├── .gitignore                # Ignore node_modules, .env etc.
+├── package.json              # Node.js metadata & scripts
+├── server.js                 # Main Express server file
+
+├── db.js                     # MySQL DB connection using mysql2
+├── routes/
+│   └── auth.js               # Login/Register API routes
+
+├── public/                   # Frontend folder (served statically)
+│   ├── index.html            # Login/Register UI
+│   ├── style.css             # CSS styles
+│   └── script.js             # JS for toggling + form handling
+
+├── sql/
+│   └── schema.sql            # SQL to create users table (for Aiven setup)
