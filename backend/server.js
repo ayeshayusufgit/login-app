@@ -4,6 +4,7 @@ import authRoutes from "./routes/auth.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
+import db from "./db.js";
 
 const app = express();
 
@@ -18,6 +19,16 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 // Routes
 app.use("/api/auth", authRoutes);
+
+app.get('/health', async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT NOW() AS now');
+    res.status(200).json({ status: 'ok', time: rows[0].now });
+  } catch (error) {
+    console.error('❌ DB Health Check Error:', error);  // Full error object
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
 
 // Catch-all to serve index.html for frontend
 app.get("*", (req, res) => {
