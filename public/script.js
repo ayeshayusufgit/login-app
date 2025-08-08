@@ -1,82 +1,75 @@
-const form = document.getElementById("auth-form");
-const toggleLink = document.getElementById("toggle-link");
-const toggleText = document.getElementById("toggle-text");
+let isLogin = true; // toggle state
+
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const message = document.getElementById("message");
+const emailCounter = document.getElementById("emailCounter");
+const submitBtn = document.getElementById("submitBtn");
+const toggleForm = document.getElementById("toggleForm");
+const toggleText = document.getElementById("toggleText");
 const formTitle = document.getElementById("form-title");
-const confirmPasswordInput = document.getElementById("confirm-password");
-const submitBtn = document.getElementById("submit-btn");
-const messageBox = document.getElementById("message");
 
-let isLogin = true;
+// Live email character counter
+emailInput.addEventListener("input", () => {
+    const maxLength = 50;
+    const remaining = maxLength - emailInput.value.length;
+    emailCounter.textContent = `${remaining} characters left`;
+});
 
-function showMessage(type, text) {
-  messageBox.className = `message ${type}`;
-  messageBox.textContent = text;
-  messageBox.style.display = "block";
-}
+// Toggle between login/register
+toggleForm.addEventListener("click", (e) => {
+    e.preventDefault();
+    isLogin = !isLogin;
+    formTitle.textContent = isLogin ? "Login" : "Register";
+    submitBtn.textContent = isLogin ? "Login" : "Register";
+    toggleText.textContent = isLogin
+        ? "Don't have an account?"
+        : "Already have an account?";
+    toggleForm.textContent = isLogin ? "Register here" : "Login here";
+    message.textContent = "";
+});
 
-function clearMessage() {
-  messageBox.textContent = "";
-  messageBox.style.display = "none";
-}
+// Handle submit
+submitBtn.addEventListener("click", async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
 
-function validateEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
+    // Clear previous message
+    message.textContent = "";
+    message.className = "";
 
-function updateToggleText() {
-  toggleText.innerHTML = isLogin
-    ? `Don't have an account? <a href="#" id="toggle-link">Register</a>`
-    : `Already have an account? <a href="#" id="toggle-link">Login</a>`;
-  document.getElementById("toggle-link").addEventListener("click", toggleForm);
-}
+    // Frontend validation
+    if (email.length > 50) {
+        message.textContent = "Email cannot exceed 50 characters.";
+        message.className = "error";
+        return;
+    }
+    if (password.length < 8 || password.length > 20) {
+        message.textContent = "Password must be between 8 and 20 characters.";
+        message.className = "error";
+        return;
+    }
 
-function toggleForm(e) {
-  e.preventDefault();
-  isLogin = !isLogin;
+    // Example API call (replace with your backend endpoint)
+    try {
+        const endpoint = isLogin ? "/login" : "/register";
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
 
-  formTitle.textContent = isLogin ? "Login" : "Register";
-  submitBtn.textContent = isLogin ? "Login" : "Register";
-  confirmPasswordInput.style.display = isLogin ? "none" : "block";
+        const data = await res.json();
 
-  clearMessage();
-  updateToggleText();
-}
-
-toggleLink.addEventListener("click", toggleForm);
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  clearMessage();
-
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const confirmPassword = document.getElementById("confirm-password").value.trim();
-
-  if (!validateEmail(email)) {
-    showMessage("error", "Please enter a valid email address.");
-    return;
-  }
-
-  if (!password || (!isLogin && password !== confirmPassword)) {
-    showMessage("error", isLogin ? "Password is required." : "Passwords do not match.");
-    return;
-  }
-
-  try {
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || "Something went wrong.");
-
-    showMessage("success", data.message || (isLogin ? "Login successful!" : "Registered successfully!"));
-  } catch (err) {
-    showMessage("error", err.message);
-  }
+        if (res.ok) {
+            message.textContent = data.message || (isLogin ? "Login successful" : "Registration successful");
+            message.className = "success";
+        } else {
+            message.textContent = data.message || "Something went wrong";
+            message.className = "error";
+        }
+    } catch (error) {
+        message.textContent = "Server error. Please try again.";
+        message.className = "error";
+    }
 });
