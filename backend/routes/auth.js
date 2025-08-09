@@ -1,52 +1,65 @@
 // backend/routes/auth.js
-import express from "express";
-import bcrypt from "bcrypt";
-import db from "../db.js";
+import express from 'express';
+import db from '../db.js';
+import {
+  hashPassword,
+  comparePassword,
+  validateEmail,
+  validatePassword
+} from '../auth.js';
 
 const router = express.Router();
 
-router.post("/register", async (req, res) => {
+router.post('/register', async (req, res) => {
   const { email, password } = req.body;
 
+  if (!validateEmail(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+  if (!validatePassword(password)) {
+    return res.status(400).json({ message: 'Password must be 6-20 chars, include letters and numbers' });
+  }
+
   try {
-    // Check if user exists
-    const [existingUser] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashed = await hashPassword(password);
+    await db.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashed]);
+    return res.status(200).json({ message: 'Registration successful' });
 
-    // Insert user
-    await db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, hashedPassword]);
-
-    return res.status(200).json({ message: "Registration successful" });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
+  if (!validateEmail(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+
   try {
-    const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (users.length === 0) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: 'Email not found' });
     }
 
     const user = users[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Incorrect password" });
+    const match = await comparePassword(password, user.password);
+    if (!match) {
+      return res.status(400).json({ message: 'Incorrect password' });
     }
 
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ message: 'Login successful' });
+
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 

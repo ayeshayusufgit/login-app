@@ -1,33 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Register</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login / Register</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h2 id="form-title">Login</h2>
-
-        <!-- Email input -->
-        <input type="email" id="email" placeholder="Email" required>
-        <small id="emailCounter" class="counter">50 characters left</small>
-
-        <!-- Password input -->
-        <input type="password" id="password" placeholder="Password" required>
-
-        <!-- Message area -->
-        <p id="message"></p>
-
-        <!-- Buttons -->
-        <button id="submitBtn">Login</button>
-        <p>
-            <span id="toggleText">Don't have an account?</span>
-            <a href="#" id="toggleForm">Register here</a>
-        </p>
-    </div>
-
-    <script src="script.js"></script>
+  <div class="container">
+    <h1 id="formTitle">Login</h1>
+    <form id="authForm">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required minlength="6" maxlength="20" />
+      <p id="message" aria-live="polite"></p>
+      <button type="submit">Login</button>
+    </form>
+    <p>
+      <span id="toggleText">Don't have an account?</span>
+      <a href="#" id="toggleLink">Register here</a>
+    </p>
+  </div>
+<script src="script.js"></script>
 </body>
 </html>
