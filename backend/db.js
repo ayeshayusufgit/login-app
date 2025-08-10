@@ -9,7 +9,7 @@ const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: true }, // assume production (Aiven) SSL required; remove if local without SSL
+  ssl: { rejectUnauthorized: false  }, // assume production (Aiven) SSL required; remove if local without SSL
 };
 
 let con;
