@@ -1,78 +1,47 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #f0f2f5;
+  background: #f4f4f4;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  margin: 0;
 }
 
 .container {
   background: white;
-  padding: 2rem;
-  width: 320px;
-  border-radius: 8px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
-  text-align: center;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
 }
 
-input {
+input, button {
   width: 100%;
-  padding: 0.75rem;
-  margin: 0.5rem 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 1rem;
+  padding: 10px;
+  margin: 8px 0;
 }
 
 button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
+  background: #007bff;
   border: none;
   color: white;
-  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  border-radius: 5px;
-  margin-top: 1rem;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background: #0056b3;
 }
 
 #message {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-  height: 1.2rem;
-}
-
-#message.error {
-  color: #dc3545;
-}
-
-#message.success {
-  color: #28a745;
-}
-
-p {
-  margin-top: 1rem;
+  text-align: center;
   font-size: 0.9rem;
 }
 
-a {
-  color: #007bff;
-  text-decoration: none;
-  cursor: pointer;
+.success {
+  color: green;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 400px) {
-  .container {
-    width: 90%;
-  }
+.error {
+  color: red;
 }

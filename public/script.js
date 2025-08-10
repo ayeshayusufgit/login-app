@@ -1,66 +1,42 @@
-const form = document.getElementById('authForm');
-const toggleLink = document.getElementById('toggleLink');
-const formTitle = document.getElementById('formTitle');
-const toggleText = document.getElementById('toggleText');
-const message = document.getElementById('message');
+let isLogin = false;
 
-let isLogin = true;
-
-toggleLink.addEventListener('click', (e) => {
-  e.preventDefault();
+document.getElementById("toggle-btn").addEventListener("click", () => {
   isLogin = !isLogin;
-  formTitle.textContent = isLogin ? 'Login' : 'Register';
-  toggleText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
-  toggleLink.textContent = isLogin ? 'Register here' : 'Login here';
-  message.textContent = '';
-  message.className = '';
+  document.getElementById("form-title").textContent = isLogin ? "Login" : "Register";
+  document.getElementById("submit-btn").textContent = isLogin ? "Login" : "Register";
+  document.getElementById("toggle-text").textContent = isLogin
+    ? "Don't have an account?"
+    : "Already have an account?";
+  document.getElementById("toggle-btn").textContent = isLogin ? "Register" : "Login";
+  document.getElementById("message").textContent = "";
 });
 
-form.addEventListener('submit', async (e) => {
+document.getElementById("auth-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  message.textContent = '';
-  message.className = '';
 
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
-
-  // Basic email format check
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    message.textContent = 'Invalid email format';
-    message.className = 'error';
-    return;
-  }
-  if (password.length < 6 || password.length > 20) {
-    message.textContent = 'Password must be 6-20 characters';
-    message.className = 'error';
-    return;
-  }
-
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const messageEl = document.getElementById("message");
 
   try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    const res = await fetch(`/api/auth/${isLogin ? 'login' : 'register'}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
     });
+
     const data = await res.json();
 
     if (res.ok) {
-      message.textContent = data.message;
-      message.className = 'success';
-      if (isLogin) {
-        // optionally redirect on login success after delay
-        setTimeout(() => {
-          window.location.href = '/welcome.html'; // create welcome.html if you want
-        }, 1500);
-      }
+      messageEl.textContent = data.message;
+      messageEl.className = "success";
     } else {
-      message.textContent = data.message;
-      message.className = 'error';
+      messageEl.textContent = data.error || "Something went wrong";
+      messageEl.className = "error";
     }
   } catch (err) {
-    message.textContent = 'Server error. Please try again later.';
-    message.className = 'error';
+    console.error(err);
+    messageEl.textContent = "Server error";
+    messageEl.className = "error";
   }
 });

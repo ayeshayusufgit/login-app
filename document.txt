@@ -1,6 +1,10 @@
 To connect to the DB
 mysql -u root -p
 
+set ENV=local && node backend/server.js
+set ENV=prod && node backend/server.js
+
+
 Project Structure
 =================
 

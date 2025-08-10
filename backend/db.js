@@ -3,29 +3,33 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const env = process.env.ENV || 'local';
-
-const config = env === 'local' ? {
-  host: process.env.LOCAL_DB_HOST,
-  port: process.env.LOCAL_DB_PORT,
-  user: process.env.LOCAL_DB_USER,
-  password: process.env.LOCAL_DB_PASSWORD,
-  database: process.env.LOCAL_DB_NAME,
-} : {
-  host: process.env.PROD_DB_HOST,
-  port: process.env.PROD_DB_PORT,
-  user: process.env.PROD_DB_USER,
-  password: process.env.PROD_DB_PASSWORD,
-  database: process.env.PROD_DB_NAME,
-  ssl: { rejectUnauthorized: false },
+const dbConfig = {
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  //ssl: { rejectUnauthorized: true }, // assume production (Aiven) SSL required; remove if local without SSL
 };
 
-const db = mysql.createPool({
-  ...config,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+let con;
 
-console.log(`✅ Connected to ${env === 'local' ? 'Local' : 'Aiven'} MySQL DB`);
+export const connectDB = async () => {
+  try {
+    con = await mysql.createConnection(dbConfig);
+    console.log('✅ Connected to database');
+  } catch (err) {
+    console.error('❌ Database connection failed:', err.message);
+    process.exit(1);
+  }
+};
 
-export default db;
+export const queryDB = async (sql, params = []) => {
+  try {
+    const [rows] = await con.query(sql, params);
+    return rows;
+  } catch (err) {
+    console.error('❌ Query error:', err.message);
+    throw err;
+  }
+};

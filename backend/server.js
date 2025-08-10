@@ -1,56 +1,47 @@
-// backend/server.js
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import authRoutes from './routes/auth.js';
-import db from './db.js';
+
+import authRouter from './routes/auth.js';
+import { connectDB } from './db.js';
 
 dotenv.config();
 
 const app = express();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Middleware - update origin to your frontend Render URL
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://your-deployed-frontend.com' // Change this to your actual frontend URL
-  ],
-  methods: ['GET', 'POST'],
+  origin: 'https://login-app-0qux.onrender.com', 
   credentials: true,
 }));
 app.use(express.json());
+
+// Serve frontend static files from public folder
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.use('/api/auth', authRoutes);
+// API routes
+app.use('/api/auth', authRouter);
 
-app.get('/health', async (req, res) => {
-  try {
-    const [rows] = await db.execute('SELECT NOW() AS now');
-    res.status(200).json({ status: 'ok', time: rows[0].now });
-  } catch (err) {
-    console.error('DB Health Check Error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-});
-
-// Serve frontend for any other routes
+// For all other routes, serve index.html (for SPA support)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Connect to DB and start server
+const PORT = process.env.PORT || 5000;
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use. Please free the port or use a different one.`);
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Failed to start server:', err);
     process.exit(1);
-  } else {
-    console.error('Server error:', err);
-  }
-});
+  });

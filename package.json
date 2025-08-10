@@ -12,5 +12,21 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "mysql2": "^3.14.3"
+  },
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayeshayusufgit/login-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ayeshayusufgit/login-app/issues"
+  },
+  "homepage": "https://github.com/ayeshayusufgit/login-app#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

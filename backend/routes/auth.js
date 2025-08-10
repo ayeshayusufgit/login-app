@@ -1,6 +1,6 @@
 // backend/routes/auth.js
 import express from 'express';
-import db from '../db.js';
+import { queryDB } from '../db.js';
 import {
   hashPassword,
   comparePassword,
@@ -21,17 +21,17 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const [existingUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    const existingUser = await queryDB('SELECT * FROM users WHERE email = ?', [email]);
     if (existingUser.length > 0) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
     const hashed = await hashPassword(password);
-    await db.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashed]);
+    await queryDB('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashed]);
     return res.status(200).json({ message: 'Registration successful' });
 
   } catch (err) {
-    console.error(err);
+    console.error('Register error:', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });
@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    const users = await queryDB('SELECT * FROM users WHERE email = ?', [email]);
     if (users.length === 0) {
       return res.status(400).json({ message: 'Email not found' });
     }
@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
     return res.status(200).json({ message: 'Login successful' });
 
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });
