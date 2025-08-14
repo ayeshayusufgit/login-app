@@ -9,14 +9,21 @@ import { connectDB } from './db.js';
 
 dotenv.config();
 
-const app = express();
+const app = express(); // ✅ Create app BEFORE using it
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Serve config.js dynamically from .env
+app.get("/config.js", (req, res) => {
+  res.setHeader("Content-Type", "application/javascript");
+  res.send(`window.BACKEND_URL = "${process.env.BACKEND_URL}";`);
+});
+
 // Middleware - update origin to your frontend Render URL
 app.use(cors({
-  origin: 'https://login-app-0qux.onrender.com', 
+  //origin: 'https://login-app-0qux.onrender.com', 
+  origin: true,
   credentials: true,
 }));
 app.use(express.json());

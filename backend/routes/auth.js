@@ -1,4 +1,5 @@
 // backend/routes/auth.js
+
 import express from 'express';
 import { queryDB } from '../db.js';
 import {
@@ -28,7 +29,7 @@ router.post('/register', async (req, res) => {
 
     const hashed = await hashPassword(password);
     await queryDB('INSERT INTO users (email, password) VALUES (?, ?)', [email, hashed]);
-    return res.status(200).json({ message: 'Registration successful' });
+    return res.status(201).json({ message: 'Registration successful' });
 
   } catch (err) {
     console.error('Register error:', err);
@@ -46,7 +47,7 @@ router.post('/login', async (req, res) => {
   try {
     const users = await queryDB('SELECT * FROM users WHERE email = ?', [email]);
     if (users.length === 0) {
-      return res.status(400).json({ message: 'Email not found' });
+      return res.status(404).json({ message: 'Email not found' });
     }
 
     const user = users[0];

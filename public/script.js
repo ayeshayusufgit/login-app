@@ -1,4 +1,5 @@
-const backendURL = "http://localhost:5000/api/auth"; // Update as needed
+// No hardcoding — only from config.js
+const backendURL = window.BACKEND_URL;
 
 const form = document.getElementById("authForm");
 const formTitle = document.getElementById("formTitle");
@@ -44,8 +45,7 @@ toggleLink.addEventListener("click", (e) => {
   toggleLink.textContent = isLogin ? "Register here" : "Login here";
 
   clearErrors();
-  emailInput.value = "";
-  passwordInput.value = "";
+  form.reset();
   emailInput.focus();
 });
 
