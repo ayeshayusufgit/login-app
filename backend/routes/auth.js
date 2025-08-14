@@ -11,6 +11,45 @@ import {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UserCredentials:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: user@example.com
+ *         password:
+ *           type: string
+ *           example: Password123
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCredentials'
+ *     responses:
+ *       201:
+ *         description: Registration successful
+ *       400:
+ *         description: Invalid email, password, or already registered
+ *       500:
+ *         description: Server error
+ */
+
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
 
@@ -36,6 +75,29 @@ router.post('/register', async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 });
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCredentials'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       400:
+ *         description: Invalid email or password
+ *       404:
+ *         description: Email not found
+ *       500:
+ *         description: Server error
+ */
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
