@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-import jwt from 'jsonwebtoken';
+import basicAuth from 'express-basic-auth';
 
 import authRouter from './routes/auth.js';
 import { connectDB } from './db.js';
@@ -16,7 +16,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- Swagger setup ---
+// Swagger setup
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -35,32 +35,21 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-// --- Middleware to protect Swagger in prod ---
-const swaggerJWTAuth = (req, res, next) => {
-  if (process.env.ENV !== 'prod') {
-    return next(); // No auth in dev
-  }
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({ message: 'Forbidden: Admins only' });
-    }
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-};
-
-// Swagger route (protected in prod)
-app.use('/api-docs', swaggerJWTAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Protect Swagger in production with Basic Auth
+if (process.env.ENV === 'prod') {
+  app.use(
+    '/api-docs',
+    basicAuth({
+      users: { [process.env.SWAGGER_USER]: process.env.SWAGGER_PASS },
+      challenge: true,
+    }),
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+  );
+} else {
+  // No auth in dev
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // Serve config.js dynamically from .env
 app.get('/config.js', (req, res) => {
@@ -69,22 +58,13 @@ app.get('/config.js', (req, res) => {
 });
 
 // Middleware
-app.use(cors({
-  origin: true, // Or set to your frontend URL
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(express.json());
-
-// --- TEMP: Generate admin token for Swagger access ---
-// Remove this route once you've tested in prod
-app.get('/generate-admin-token', (req, res) => {
-  const token = jwt.sign(
-    { role: 'admin' },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-  res.json({ token });
-});
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '../public')));
@@ -97,7 +77,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Connect to DB and start server
+// Connect DB and start server
 const PORT = process.env.PORT || 5000;
 connectDB()
   .then(() => {
@@ -106,7 +86,7 @@ connectDB()
       console.log(`📄 Swagger docs available at /api-docs`);
     });
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('Failed to start server:', err);
     process.exit(1);
   });
