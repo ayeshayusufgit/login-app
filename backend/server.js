@@ -75,6 +75,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// --- TEMP: Generate admin token for Swagger access ---
+// Remove this route once you've tested in prod
+app.get('/generate-admin-token', (req, res) => {
+  const token = jwt.sign(
+    { role: 'admin' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+  res.json({ token });
+});
+
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '../public')));
 
