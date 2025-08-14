@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import jwt from 'jsonwebtoken';
+
 import authRouter from './routes/auth.js';
 import { connectDB } from './db.js';
 
@@ -14,32 +15,6 @@ dotenv.config();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Middleware to check admin role
-const swaggerJWTAuth = (req, res, next) => {
-  if (process.env.ENV !== 'prod') {
-    return next(); // no auth in dev
-  }
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({ message: 'Forbidden: Admins only' });
-    }
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-};
-
-app.use('/api-docs', swaggerJWTAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Swagger setup ---
 const swaggerOptions = {
@@ -60,8 +35,32 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-app.use('/api-docs', swaggerAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-// --- End Swagger setup ---
+// --- Middleware to protect Swagger in prod ---
+const swaggerJWTAuth = (req, res, next) => {
+  if (process.env.ENV !== 'prod') {
+    return next(); // No auth in dev
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden: Admins only' });
+    }
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// Swagger route (protected in prod)
+app.use('/api-docs', swaggerJWTAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Serve config.js dynamically from .env
 app.get('/config.js', (req, res) => {
@@ -71,7 +70,7 @@ app.get('/config.js', (req, res) => {
 
 // Middleware
 app.use(cors({
-  origin: true, // or set to your frontend URL
+  origin: true, // Or set to your frontend URL
   credentials: true,
 }));
 app.use(express.json());
