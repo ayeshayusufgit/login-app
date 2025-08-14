@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
+import basicAuth from 'basic-auth';
 
 import authRouter from './routes/auth.js';
 import { connectDB } from './db.js';
@@ -14,6 +15,23 @@ dotenv.config();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// --- Swagger auth middleware ---
+const swaggerAuth = (req, res, next) => {
+  if (process.env.ENV !== 'prod') {
+    return next(); // no auth in dev
+  }
+
+  const user = basicAuth(req);
+  const username = process.env.SWAGGER_USER;
+  const password = process.env.SWAGGER_PASS;
+
+  if (!user || user.name !== username || user.pass !== password) {
+    res.set('WWW-Authenticate', 'Basic realm="Swagger Docs"');
+    return res.status(401).send('Authentication required.');
+  }
+  next();
+};
 
 // --- Swagger setup ---
 const swaggerOptions = {
@@ -30,10 +48,11 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: [path.join(__dirname, './routes/*.js')], // ✅ full path to routes
+  apis: [path.join(__dirname, './routes/*.js')],
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use('/api-docs', swaggerAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // --- End Swagger setup ---
 
 // Serve config.js dynamically from .env
