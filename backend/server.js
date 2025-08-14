@@ -5,8 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-import basicAuth from 'basic-auth';
-
+import jwt from 'jsonwebtoken';
 import authRouter from './routes/auth.js';
 import { connectDB } from './db.js';
 
@@ -16,22 +15,31 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- Swagger auth middleware ---
-const swaggerAuth = (req, res, next) => {
+// Middleware to check admin role
+const swaggerJWTAuth = (req, res, next) => {
   if (process.env.ENV !== 'prod') {
     return next(); // no auth in dev
   }
 
-  const user = basicAuth(req);
-  const username = process.env.SWAGGER_USER;
-  const password = process.env.SWAGGER_PASS;
-
-  if (!user || user.name !== username || user.pass !== password) {
-    res.set('WWW-Authenticate', 'Basic realm="Swagger Docs"');
-    return res.status(401).send('Authentication required.');
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token provided' });
   }
-  next();
+
+  const token = authHeader.split(' ')[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden: Admins only' });
+    }
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
 };
+
+app.use('/api-docs', swaggerJWTAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // --- Swagger setup ---
 const swaggerOptions = {
